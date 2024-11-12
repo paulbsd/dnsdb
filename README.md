@@ -2,7 +2,7 @@
 
 ## Summary
 
-dnsdb is tool designed to generated CDB and LMDB databases for dnsdist with plain test files
+dnsdb is a tool designed to generate CDB and LMDB databases for dnsdist from plain text files
 
 ## Howto
 
