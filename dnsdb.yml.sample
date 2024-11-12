@@ -1,0 +1,13 @@
+---
+- url: "https://dnsbl.com/data/local.txt"
+  file: "/etc/dnsdist/db/local.lmdb"
+  type: "ip"
+- url: "https://dnsbl.com/data/ips.all.txt"
+  file: "/etc/dnsdist/db/ips.all.lmdb"
+  type: "ip"
+- url: "https://dnsbl.com/data/ips.txt"
+  file: "/etc/dnsdist/db/ips.lmdb"
+  type: "ip"
+- url: "https://dnsbl.com/data/domains.txt"
+  file: "/etc/dnsdist/db/domains.cdb"
+  type: "domain"
