@@ -45,7 +45,8 @@ func HandleDomains(url string, file string) (err error) {
 	}
 
 	for fileScanner.Scan() {
-		var dom = fileScanner.Text()
+		var line = fileScanner.Text()
+		var dom = strings.TrimSpace(strings.Split(line, "#")[0])
 		writer.Put([]byte(dom), []byte(""))
 		handled++
 	}
@@ -93,8 +94,7 @@ func HandleIPs(db string, url string, file string) (err error) {
 		for fileScanner.Scan() {
 			var upper, lower []byte
 			var line = fileScanner.Text()
-			var ipitem = strings.Split(line, "#")[0]
-			ipitem = strings.TrimSpace(ipitem)
+			var ipitem = strings.TrimSpace(strings.Split(line, "#")[0])
 			if len(ipitem) == 0 {
 				continue
 			}
