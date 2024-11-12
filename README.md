@@ -35,6 +35,21 @@ go build cmd/dnsdb/*.go
 ./dnsdb -configfile dnsdb.yml
 ```
 
+## dnsdist config
+
+```lua
+local kvs_domains = newCDBKVStore("/etc/dnsdist/db/domains.cdb", 2)
+local kvs_ips = newLMDBKVStore("/etc/dnsdist/db/ips.lmdb", "db")
+local kvs_local_ips = newLMDBKVStore("/etc/dnsdist/db/local.lmdb", "db")
+
+
+addAction(KeyValueStoreLookupRule(kvs_domains, KeyValueLookupKeyQName(false)), SetTagAction("policy", "block"))
+addAction(KeyValueStoreRangeLookupRule(kvs_ips, KeyValueLookupKeySourceIP(32, 128, false)), SetTagAction("policy", "delay"))
+
+addAction(TagRule("policy", "delay"), DelayAction(250))
+addAction(TagRule("policy", "block"), DropAction())
+```
+
 ## License
 
 ```text
