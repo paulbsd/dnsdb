@@ -13,13 +13,13 @@ const BASEDIR string = "/etc/dnsdist/db"
 func main() {
 	var err error
 	var configfile = config.ParseArgs()
-	var dbs = config.GetCfg(configfile)
-	for _, db := range dbs {
+	var cfg = config.GetCfg(configfile)
+	for _, db := range cfg.Config.Blocklists {
 		switch db.Type {
 		case "domain":
-			err = core.HandleDomains(db.URL, db.File)
+			err = core.HandleDomains(&cfg, db.URL, db.File)
 		case "ip":
-			err = core.HandleIPs(DB, db.URL, db.File)
+			err = core.HandleIPs(&cfg, DB, db.URL, db.File)
 		}
 		if err != nil {
 			log.Println(err)

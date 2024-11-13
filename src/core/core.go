@@ -7,8 +7,10 @@ import (
 	"log"
 	"net/http"
 	"net/netip"
+	"os"
 	"strings"
 
+	"git.paulbsd.com/paulbsd/dnsdb/src/config"
 	"github.com/3th1nk/cidr"
 	"github.com/colinmarc/cdb"
 	"github.com/rs/zerolog"
@@ -16,18 +18,25 @@ import (
 )
 
 func GetBody(url string) (body io.ReadCloser, err error) {
-	res, err := http.Get(url)
-	if err != nil {
+	if strings.HasPrefix(url, "file:///") {
+		path := strings.Replace(url, "file://", "", 1)
+		body, err = os.Open(path)
 		return
+	} else if strings.HasPrefix(url, "http://") || strings.HasPrefix(url, "https://") {
+		res, err := http.Get(url)
+		if err != nil {
+			return nil, err
+		}
+		if res.StatusCode != 200 {
+			err = fmt.Errorf("error with %s url with http code %d", url, res.StatusCode)
+			return nil, err
+		}
+		return res.Body, nil
 	}
-	if res.StatusCode != 200 {
-		err = fmt.Errorf("error with %s url with http code %d", url, res.StatusCode)
-		return
-	}
-	return res.Body, nil
+	return nil, fmt.Errorf("Can't access data")
 }
 
-func HandleDomains(url string, file string) (err error) {
+func HandleDomains(cfg *config.Cfg, url string, file string) (err error) {
 	var handled int
 
 	body, err := GetBody(url)
@@ -55,7 +64,7 @@ func HandleDomains(url string, file string) (err error) {
 	return
 }
 
-func HandleIPs(db string, url string, file string) (err error) {
+func HandleIPs(cfg *config.Cfg, db string, url string, file string) (err error) {
 	body, err := GetBody(url)
 	if err != nil {
 		log.Println(err)
@@ -99,7 +108,7 @@ func HandleIPs(db string, url string, file string) (err error) {
 				continue
 			}
 			if strings.Contains(ipitem, "/") {
-				upper, lower, err = convertCIDR(ipitem)
+				upper, lower, err = convertCIDR(ipitem, cfg.Config.IPv4MaxCidrValue, cfg.Config.IPv6MaxCidrValue)
 				if err != nil {
 					log.Println(err)
 					continue
@@ -134,10 +143,22 @@ func convertIP(ip string) (res []byte, err error) {
 	return res, err
 }
 
-func convertCIDR(iprange string) (upperres []byte, lowerres []byte, err error) {
+func convertCIDR(iprange string, ipv4MaxLimit int, ipv6MaxLimit int) (upperres []byte, lowerres []byte, err error) {
 	cp, err := cidr.Parse(iprange)
 	if err != nil {
 		return nil, nil, err
+	}
+	if cp.IsIPv4() {
+		ones, _ := cp.MaskSize()
+		if ones < ipv4MaxLimit {
+			return nil, nil, fmt.Errorf("IPv4 mask limit reach for range %s (max required %d), ignoring", iprange, ipv4MaxLimit)
+		}
+	}
+	if cp.IsIPv6() {
+		ones, _ := cp.MaskSize()
+		if ones < ipv6MaxLimit {
+			return nil, nil, fmt.Errorf("IPv6 mask limit reach for range %s (max required %d), ignoring", iprange, ipv6MaxLimit)
+		}
 	}
 	upper, _ := netip.AddrFromSlice(cp.Broadcast())
 	lower, _ := netip.AddrFromSlice(cp.Network())
