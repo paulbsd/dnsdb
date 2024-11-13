@@ -6,6 +6,12 @@ dnsdb is a tool designed to generate CDB and LMDB databases for dnsdist from pla
 
 ## Howto
 
+### Dependencies
+
+* liblmdb
+
+cdb library is pure-go, no need to have external dependency
+
 ### Build
 
 ```bash
@@ -15,18 +21,23 @@ go build cmd/dnsdb/*.go
 ### Sample config in dnsdb.yml
 
 ```yaml
-- url: "https://dnsbl.com/data/local.txt"
-  file: "/etc/dnsdist/db/local.lmdb"
-  type: "ip"
-- url: "https://dnsbl.com/data/ips.all.txt"
-  file: "/etc/dnsdist/db/ips.all.lmdb"
-  type: "ip"
-- url: "https://dnsbl.com/data/ips.txt"
-  file: "/etc/dnsdist/db/ips.lmdb"
-  type: "ip"
-- url: "https://dnsbl.com/data/domains.txt"
-  file: "/etc/dnsdist/db/domains.cdb"
-  type: "domain"
+---
+config:
+  ipv4_max_cidr_value: 24
+  ipv6_max_cidr_value: 64
+  blocklists:
+    - url: "https://dnsbl.com/data/local.txt"
+      file: "/etc/dnsdist/db/local.lmdb"
+      type: "ip"
+    - url: "https://dnsbl.com/data/ips.all.txt"
+      file: "/etc/dnsdist/db/ips.all.lmdb"
+      type: "ip"
+    - url: "https://dnsbl.com/data/ips.txt"
+      file: "/etc/dnsdist/db/ips.lmdb"
+      type: "ip"
+    - url: "https://dnsbl.com/data/domains.txt"
+      file: "/etc/dnsdist/db/domains.cdb"
+      type: "domain"
 ```
 
 ### Run
