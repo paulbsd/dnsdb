@@ -2,6 +2,7 @@ package main
 
 import (
 	"log"
+	"os"
 
 	"git.paulbsd.com/paulbsd/dnsdb/src/config"
 	"git.paulbsd.com/paulbsd/dnsdb/src/core"
@@ -13,7 +14,10 @@ const BASEDIR string = "/etc/dnsdist/db"
 func main() {
 	var err error
 	var configfile = config.ParseArgs()
-	var cfg = config.GetCfg(configfile)
+	cfg, err := config.GetCfg(configfile)
+	if err != nil {
+		os.Exit(1)
+	}
 	for _, db := range cfg.Config.Blocklists {
 		switch db.Type {
 		case "domain":
@@ -23,6 +27,7 @@ func main() {
 		}
 		if err != nil {
 			log.Println(err)
+			os.Exit(1)
 		}
 	}
 }

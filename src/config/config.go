@@ -16,7 +16,7 @@ func ParseArgs() string {
 	return configfile
 }
 
-func GetCfg(configfile string) (cfg Cfg) {
+func GetCfg(configfile string) (cfg Cfg, err error) {
 	f, err := os.Open(configfile)
 	if err != nil {
 		log.Println(err)
