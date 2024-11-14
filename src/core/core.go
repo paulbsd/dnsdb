@@ -10,9 +10,8 @@ import (
 	"strings"
 
 	"git.paulbsd.com/paulbsd/dnsdb/src/config"
+	"github.com/PowerDNS/lmdb-go/lmdb"
 	"github.com/colinmarc/cdb"
-	"github.com/rs/zerolog"
-	"wellquite.org/golmdb"
 )
 
 func GetBody(url string) (body io.ReadCloser, err error) {
@@ -72,15 +71,25 @@ func HandleIPs(cfg *config.Cfg, db string, url string, file string) (err error) 
 	fileScanner := bufio.NewScanner(body)
 	fileScanner.Split(bufio.ScanLines)
 
-	logger := zerolog.New(nil)
-	client, err := golmdb.NewLMDB(logger, file, 0666, 100, 4, golmdb.NoReadAhead|golmdb.NoSubDir, 1000)
+	env, err := lmdb.NewEnv()
+	err = env.SetMapSize(100 * 1024 * 1024)
 	if err != nil {
-		return
+		log.Println(err)
+	}
+	err = env.SetMaxDBs(1)
+	if err != nil {
+		log.Println(err)
 	}
 
-	err = client.Update(func(txn *golmdb.ReadWriteTxn) (err error) {
-		dbRef, err := txn.DBRef(db, golmdb.Create)
-		err = txn.Drop(dbRef)
+	err = env.Open(file, lmdb.NoReadahead|lmdb.NoSubdir, 0664)
+	if err != nil {
+		log.Println(err)
+	}
+	defer env.Close()
+
+	err = env.Update(func(txn *lmdb.Txn) (err error) {
+		dbi, err := txn.CreateDBI("db")
+		err = txn.Drop(dbi, false)
 		if err != nil {
 			log.Println(err)
 			return
@@ -91,9 +100,9 @@ func HandleIPs(cfg *config.Cfg, db string, url string, file string) (err error) 
 		log.Println(err)
 	}
 
-	err = client.Update(func(txn *golmdb.ReadWriteTxn) (err error) {
+	err = env.Update(func(txn *lmdb.Txn) (err error) {
 		var handled int
-		dbRef, err := txn.DBRef(db, golmdb.Create)
+		dbi, err := txn.CreateDBI("db")
 		if err != nil {
 			log.Println(err)
 		}
@@ -119,7 +128,7 @@ func HandleIPs(cfg *config.Cfg, db string, url string, file string) (err error) 
 				}
 				lower = upper
 			}
-			err = txn.Put(dbRef, upper, lower, 0)
+			err = txn.Put(dbi, upper, lower, 0)
 			if err != nil {
 				log.Println(err)
 				return
