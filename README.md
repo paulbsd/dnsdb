@@ -18,8 +18,9 @@ cdb library is pure-go, no need to have external dependency
 go build cmd/dnsdb/*.go
 ```
 
-### Sample config in dnsdb.yml
+### Sample config
 
+dnsdb.yml
 ```yaml
 ---
 config:
@@ -38,6 +39,18 @@ config:
     - url: "https://dnsbl.com/data/domains.txt"
       file: "/etc/dnsdist/db/domains.cdb"
       type: "domain"
+```
+
+sample ips.txt
+```text
+1.2.3.4
+5.6.7.8
+```
+
+sample domains.txt
+```text
+mydomain1.com
+yourdomain2.net
 ```
 
 ### Run
