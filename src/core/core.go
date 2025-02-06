@@ -33,7 +33,7 @@ func GetBody(url string) (body io.ReadCloser, err error) {
 	return nil, fmt.Errorf("Can't access data")
 }
 
-func HandleDomains(cfg *config.Cfg, url string, file string) (err error) {
+func HandleStringOrDomain(cfg *config.Cfg, url string, file string) (err error) {
 	var handled int
 
 	body, err := GetBody(url)
@@ -47,24 +47,24 @@ func HandleDomains(cfg *config.Cfg, url string, file string) (err error) {
 
 	writer, err := cdb.Create(file)
 	if err != nil {
-		log.Fatal(err)
+		log.Fatalf("can't open file %s\n", file)
 	}
 
 	for fileScanner.Scan() {
 		var line = fileScanner.Text()
-		var dom = strings.TrimSpace(strings.Split(line, "#")[0])
-		writer.Put([]byte(dom), []byte(""))
+		var s = strings.TrimSpace(strings.Split(line, "#")[0])
+		writer.Put([]byte(s), []byte(""))
 		handled++
 	}
-	log.Printf("%d domains handled for url %s\n", handled, url)
+	log.Printf("%d domains/strings handled for url %s\n", handled, url)
 	writer.Close()
 	return
 }
 
-func HandleIPs(cfg *config.Cfg, db string, url string, file string) (err error) {
+func HandleIP(cfg *config.Cfg, db string, url string, file string) (err error) {
 	body, err := GetBody(url)
 	if err != nil {
-		log.Println(err)
+		log.Fatalln(err)
 		return
 	}
 
@@ -83,7 +83,7 @@ func HandleIPs(cfg *config.Cfg, db string, url string, file string) (err error) 
 
 	err = env.Open(file, lmdb.NoReadahead|lmdb.NoSubdir, 0664)
 	if err != nil {
-		log.Println(err)
+		log.Fatalf("can't open file %s\n", file)
 	}
 	defer env.Close()
 

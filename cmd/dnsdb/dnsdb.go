@@ -21,9 +21,11 @@ func main() {
 	for _, db := range cfg.Config.Blocklists {
 		switch db.Type {
 		case "domain":
-			err = core.HandleDomains(&cfg, db.URL, db.File)
+			err = core.HandleStringOrDomain(&cfg, db.URL, db.File)
+		case "string":
+			err = core.HandleStringOrDomain(&cfg, db.URL, db.File)
 		case "ip":
-			err = core.HandleIPs(&cfg, DB, db.URL, db.File)
+			err = core.HandleIP(&cfg, DB, db.URL, db.File)
 		}
 		if err != nil {
 			log.Println(err)
