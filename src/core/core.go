@@ -33,10 +33,10 @@ func GetBody(url string) (body io.ReadCloser, err error) {
 	return nil, fmt.Errorf("Can't access data")
 }
 
-func HandleStringOrDomain(cfg *config.Cfg, url string, file string) (err error) {
+func HandleStringOrDomain(cfg *config.Cfg, blocklist *config.Blocklist) (err error) {
 	var handled int
 
-	body, err := GetBody(url)
+	body, err := GetBody(blocklist.URL)
 	if err != nil {
 		log.Println(err)
 		return
@@ -45,24 +45,24 @@ func HandleStringOrDomain(cfg *config.Cfg, url string, file string) (err error) 
 	fileScanner := bufio.NewScanner(body)
 	fileScanner.Split(bufio.ScanLines)
 
-	writer, err := cdb.Create(file)
+	writer, err := cdb.Create(blocklist.File)
 	if err != nil {
-		log.Fatalf("can't open file %s\n", file)
+		log.Fatalf("can't open file %s\n", blocklist.File)
 	}
 
 	for fileScanner.Scan() {
 		var line = fileScanner.Text()
 		var s = strings.TrimSpace(strings.Split(line, "#")[0])
-		writer.Put([]byte(s), []byte(""))
+		writer.Put([]byte(s), []byte(blocklist.DefaultValue))
 		handled++
 	}
-	log.Printf("%d domains/strings handled for url %s\n", handled, url)
+	log.Printf("%d domains/strings handled for url %s\n", handled, blocklist.URL)
 	writer.Close()
 	return
 }
 
-func HandleIP(cfg *config.Cfg, db string, url string, file string) (err error) {
-	body, err := GetBody(url)
+func HandleIP(cfg *config.Cfg, dbname string, blocklist *config.Blocklist) (err error) {
+	body, err := GetBody(blocklist.URL)
 	if err != nil {
 		log.Fatalln(err)
 		return
@@ -81,14 +81,14 @@ func HandleIP(cfg *config.Cfg, db string, url string, file string) (err error) {
 		log.Println(err)
 	}
 
-	err = env.Open(file, lmdb.NoReadahead|lmdb.NoSubdir, 0664)
+	err = env.Open(blocklist.File, lmdb.NoReadahead|lmdb.NoSubdir, 0664)
 	if err != nil {
-		log.Fatalf("can't open file %s\n", file)
+		log.Fatalf("can't open file %s\n", blocklist.File)
 	}
 	defer env.Close()
 
 	err = env.Update(func(txn *lmdb.Txn) (err error) {
-		dbi, err := txn.CreateDBI("db")
+		dbi, err := txn.CreateDBI(dbname)
 		err = txn.Drop(dbi, false)
 		if err != nil {
 			log.Println(err)
@@ -102,7 +102,7 @@ func HandleIP(cfg *config.Cfg, db string, url string, file string) (err error) {
 
 	err = env.Update(func(txn *lmdb.Txn) (err error) {
 		var handled int
-		dbi, err := txn.CreateDBI("db")
+		dbi, err := txn.CreateDBI(dbname)
 		if err != nil {
 			log.Println(err)
 		}
@@ -135,7 +135,7 @@ func HandleIP(cfg *config.Cfg, db string, url string, file string) (err error) {
 			}
 			handled++
 		}
-		log.Printf("%d ips handled for url %s\n", handled, url)
+		log.Printf("%d ips handled for url %s\n", handled, blocklist.URL)
 		return
 	})
 	return

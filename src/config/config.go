@@ -39,9 +39,10 @@ func GetCfg(configfile string) (cfg Cfg, err error) {
 }
 
 type Blocklist struct {
-	URL  string `yaml:"url"`
-	File string `yaml:"file"`
-	Type string `yaml:"type"`
+	URL          string `yaml:"url"`
+	File         string `yaml:"file"`
+	Type         string `yaml:"type"`
+	DefaultValue string `yaml:"default_value"`
 }
 
 type CfgItems struct {

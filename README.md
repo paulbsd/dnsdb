@@ -39,6 +39,7 @@ config:
     - url: "https://dnsbl.com/data/domains.txt"
       file: "/etc/dnsdist/db/domains.cdb"
       type: "domain"
+      default_value: "KO"
 ```
 
 sample ips.txt
@@ -77,7 +78,7 @@ addAction(TagRule("policy", "block"), DropAction())
 ## License
 
 ```text
-Copyright (c) 2024 PaulBSD
+Copyright (c) 2024, 2025 PaulBSD
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
