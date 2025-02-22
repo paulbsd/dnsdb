@@ -15,3 +15,4 @@ config:
     - url: "https://dnsbl.com/data/domains.txt"
       file: "/etc/dnsdist/db/domains.cdb"
       type: "domain"
+      default_value: "KO"
