@@ -1,0 +1,71 @@
+---
+name: dnsdb
+
+'on':
+  push:
+    branches:
+      - master
+      - develop
+    tags:
+      - '*'
+  pull_request:
+    branches:
+      - master
+      - develop
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        arch: [amd64, arm64, arm]
+    outputs:
+      upload_url: ${{ steps.create_release.outputs.upload_url }}
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          lfs: true
+      - name: Set up Go
+        uses: actions/setup-go@v3
+        with:
+          go-version: '>=1.24'
+      - name: Build
+        run: |
+          mkdir ${{ matrix.arch }} artifacts
+          go build -mod=vendor -o ${{ matrix.arch }}/dnsdb -v cmd/dnsdb/dnsdb.go
+        env:
+          GOOS: linux
+          GOARCH: ${{ matrix.arch }}
+      - name: Create release archive
+        if: startsWith(github.ref, 'refs/tags/v')
+        run: |
+          cd ${{ matrix.arch }}
+          tar -czvf ../artifacts/dnsdb-${{ github.ref_name }}-${{ matrix.arch }}.tar.gz dnsdb
+      - uses: actions/upload-artifact@v3
+        if: startsWith(github.ref, 'refs/tags/v')
+        with:
+          name: dnsdb-artifacts
+          path: "artifacts/*"
+  release:
+    runs-on: ubuntu-latest
+    needs: [build]
+    outputs:
+      upload_url: ${{ steps.create_release.outputs.upload_url }}
+    steps:
+      - uses: actions/download-artifact@v3
+        if: startsWith(github.ref, 'refs/tags/v')
+        with:
+          name: dnsdb-artifacts
+          path: artifacts
+      - name: Create Release
+        if: startsWith(github.ref, 'refs/tags/v')
+        id: create_release
+        uses: softprops/action-gh-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref }}
+          name: dnsdb ${{ github.ref_name }}
+          draft: false
+          prerelease: false
+          files: "artifacts/*.tar.gz"
