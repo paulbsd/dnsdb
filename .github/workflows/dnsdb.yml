@@ -32,7 +32,7 @@ jobs:
       - name: Build
         run: |
           mkdir ${{ matrix.arch }} artifacts
-          go build -mod=vendor -o ${{ matrix.arch }}/dnsdb -v cmd/dnsdb/dnsdb.go
+          go build -o ${{ matrix.arch }}/dnsdb -v cmd/dnsdb/dnsdb.go
         env:
           GOOS: linux
           GOARCH: ${{ matrix.arch }}
