@@ -5,13 +5,11 @@ name: dnsdb
   push:
     branches:
       - master
-      - develop
     tags:
       - '*'
   pull_request:
     branches:
       - master
-      - develop
 
 jobs:
   build:
