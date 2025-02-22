@@ -18,7 +18,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        arch: [amd64, arm64, arm]
+        arch: [amd64]
     outputs:
       upload_url: ${{ steps.create_release.outputs.upload_url }}
     steps:
