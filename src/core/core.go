@@ -53,8 +53,10 @@ func HandleStringOrDomain(cfg *config.Cfg, blocklist *config.Blocklist) (err err
 	for fileScanner.Scan() {
 		var line = fileScanner.Text()
 		var s = strings.TrimSpace(strings.Split(line, "#")[0])
-		writer.Put([]byte(s), []byte(blocklist.DefaultValue))
-		handled++
+		if len(s) > 0 {
+			writer.Put([]byte(s), []byte(blocklist.DefaultValue))
+			handled++
+		}
 	}
 	log.Printf("%d domains/strings handled for url %s\n", handled, blocklist.URL)
 	writer.Close()
