@@ -5,6 +5,7 @@ import (
 	"io"
 	"log"
 	"os"
+	"time"
 
 	"gopkg.in/yaml.v3"
 )
@@ -39,10 +40,11 @@ func GetCfg(configfile string) (cfg Cfg, err error) {
 }
 
 type Blocklist struct {
-	URL          string `yaml:"url"`
-	File         string `yaml:"file"`
-	Type         string `yaml:"type"`
-	DefaultValue string `yaml:"default_value"`
+	URL          string    `yaml:"url"`
+	LastModified time.Time `yaml:"-"`
+	File         string    `yaml:"file"`
+	Type         string    `yaml:"type"`
+	DefaultValue string    `yaml:"default_value"`
 }
 
 type CfgItems struct {
