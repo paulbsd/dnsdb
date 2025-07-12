@@ -22,46 +22,56 @@ func GetBody(url string) (body io.ReadCloser, lastmodified time.Time, err error)
 
 	if strings.HasPrefix(url, "file:///") {
 		path := strings.Replace(url, "file://", "", 1)
-		file, err := os.Open(path)
-		if err != nil {
-			log.Println(err)
-		}
-		o, err := file.Stat()
-		if err != nil {
-			log.Println(err)
-		}
-		lastmodified = o.ModTime()
-
-		body = file
+		body, lastmodified, err = GetLocalFile(path)
 
 		return body, lastmodified, err
 	} else if strings.HasPrefix(url, "http://") || strings.HasPrefix(url, "https://") {
-		res, err := http.Get(url)
-		if err != nil {
-			log.Println(err)
-		}
-		lmstr := res.Header.Get("Last-Modified")
-		if err != nil {
-			log.Println(err)
-		}
-
-		lastmodified, err = time.Parse(lastmodifiedFormat, lmstr)
-
-		if err != nil {
-			return nil, lastmodified, err
-		}
-
-		if res.StatusCode != 200 {
-			err = fmt.Errorf("error with %s url with http code %d", url, res.StatusCode)
-			return nil, lastmodified, err
-		}
-
-		body = res.Body
+		body, lastmodified, err = GetRemoteFile(url)
 
 		return body, lastmodified, nil
 	}
-
 	err = fmt.Errorf("Can't access data")
+
+	return
+}
+
+func GetLocalFile(path string) (body io.ReadCloser, lastmodified time.Time, err error) {
+	file, err := os.Open(path)
+	if err != nil {
+		log.Println(err)
+	}
+	fstat, err := file.Stat()
+	if err != nil {
+		log.Println(err)
+	}
+	lastmodified = fstat.ModTime()
+	body = file
+
+	return
+}
+
+func GetRemoteFile(url string) (body io.ReadCloser, lastmodified time.Time, err error) {
+	res, err := http.Get(url)
+	if err != nil {
+		log.Println(err)
+	}
+	lmstr := res.Header.Get("Last-Modified")
+	if err != nil {
+		log.Println(err)
+	}
+
+	lastmodified, err = time.Parse(lastmodifiedFormat, lmstr)
+
+	if err != nil {
+		return nil, lastmodified, err
+	}
+
+	if res.StatusCode != 200 {
+		err = fmt.Errorf("error with %s url with http code %d", url, res.StatusCode)
+		return nil, lastmodified, err
+	}
+
+	body = res.Body
 
 	return
 }
