@@ -30,11 +30,13 @@ func GetBody(url string) (body io.ReadCloser, err error) {
 		}
 		return res.Body, nil
 	}
+
 	return nil, fmt.Errorf("Can't access data")
 }
 
 func HandleStringOrDomain(cfg *config.Cfg, blocklist *config.Blocklist) (err error) {
 	var handled int
+	var tmpfile = fmt.Sprintf("%s.tmp", blocklist.File)
 
 	body, err := GetBody(blocklist.URL)
 	if err != nil {
@@ -45,9 +47,9 @@ func HandleStringOrDomain(cfg *config.Cfg, blocklist *config.Blocklist) (err err
 	fileScanner := bufio.NewScanner(body)
 	fileScanner.Split(bufio.ScanLines)
 
-	writer, err := cdb.Create(blocklist.File)
+	writer, err := cdb.Create(tmpfile)
 	if err != nil {
-		log.Fatalf("can't open file %s\n", blocklist.File)
+		log.Fatalf("can't open file %s\n", tmpfile)
 	}
 
 	for fileScanner.Scan() {
@@ -60,6 +62,12 @@ func HandleStringOrDomain(cfg *config.Cfg, blocklist *config.Blocklist) (err err
 	}
 	log.Printf("%d domains/strings handled for url %s\n", handled, blocklist.URL)
 	writer.Close()
+
+	err = os.Rename(tmpfile, blocklist.File)
+	if err != nil {
+		log.Fatalf("can't move file %s to %s\n", tmpfile, blocklist.File)
+	}
+
 	return
 }
 
@@ -140,5 +148,6 @@ func HandleIP(cfg *config.Cfg, dbname string, blocklist *config.Blocklist) (err 
 		log.Printf("%d ips handled for url %s\n", handled, blocklist.URL)
 		return
 	})
+
 	return
 }
