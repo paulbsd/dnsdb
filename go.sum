@@ -1,5 +1,7 @@
 github.com/3th1nk/cidr v0.2.0 h1:81jjEknszD8SHPLVTPPk+BZjNVqq1ND2YXLSChl6Lrs=
 github.com/3th1nk/cidr v0.2.0/go.mod h1:XsSQnS4rEYyB2veDfnIGgViulFpIITPKtp3f0VxpiLw=
+github.com/3th1nk/cidr v0.3.0 h1:I6zyZXenmdnlbvioikvVNDbaUPoFd4d6wQ4reSJkcjY=
+github.com/3th1nk/cidr v0.3.0/go.mod h1:XsSQnS4rEYyB2veDfnIGgViulFpIITPKtp3f0VxpiLw=
 github.com/Pallinder/go-randomdata v1.1.0 h1:gUubB1IEUliFmzjqjhf+bgkg1o6uoFIkRsP3VrhEcx8=
 github.com/Pallinder/go-randomdata v1.1.0/go.mod h1:yHmJgulpD2Nfrm0cR9tI/+oAgRqCQQixsA8HyRZfV9Y=
 github.com/PowerDNS/lmdb-go v1.9.3 h1:AUMY2pZT8WRpkEv39I9Id3MuoHd+NZbTVpNhruVkPTg=

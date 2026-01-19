@@ -22,13 +22,13 @@ func convertCIDR(iprange string, ipv4MaxLimit int, ipv6MaxLimit int) (upperres [
 		return nil, nil, err
 	}
 	if cp.IsIPv4() {
-		ones, _ := cp.MaskSize()
+		ones, _ := cp.Mask().Size()
 		if ones < ipv4MaxLimit {
 			return nil, nil, fmt.Errorf("IPv4 mask limit reach for range %s (max required %d), ignoring", iprange, ipv4MaxLimit)
 		}
 	}
 	if cp.IsIPv6() {
-		ones, _ := cp.MaskSize()
+		ones, _ := cp.Mask().Size()
 		if ones < ipv6MaxLimit {
 			return nil, nil, fmt.Errorf("IPv6 mask limit reach for range %s (max required %d), ignoring", iprange, ipv6MaxLimit)
 		}
