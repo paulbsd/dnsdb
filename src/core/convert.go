@@ -33,7 +33,7 @@ func convertCIDR(iprange string, ipv4MaxLimit int, ipv6MaxLimit int) (upperres [
 			return nil, nil, fmt.Errorf("IPv6 mask limit reach for range %s (max required %d), ignoring", iprange, ipv6MaxLimit)
 		}
 	}
-	upper, _ := netip.AddrFromSlice(cp.Broadcast())
+	upper, _ := netip.AddrFromSlice(cp.EndIP())
 	lower, _ := netip.AddrFromSlice(cp.Network())
 	return upper.AsSlice(), lower.AsSlice(), nil
 }
