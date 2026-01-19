@@ -18,7 +18,7 @@ func main() {
 	if err != nil {
 		os.Exit(1)
 	}
-	for _, db := range cfg.Config.Blocklists {
+	for _, db := range cfg.Config.Databases {
 		switch db.Type {
 		case "domain":
 			err = core.HandleStringOrDomain(&cfg, &db)

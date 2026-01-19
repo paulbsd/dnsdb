@@ -39,7 +39,7 @@ func GetCfg(configfile string) (cfg Cfg, err error) {
 	return
 }
 
-type Blocklist struct {
+type Database struct {
 	URL          string    `yaml:"url"`
 	LastModified time.Time `yaml:"-"`
 	File         string    `yaml:"file"`
@@ -48,9 +48,9 @@ type Blocklist struct {
 }
 
 type CfgItems struct {
-	IPv4MaxCidrValue int         `yaml:"ipv4_max_cidr_value"`
-	IPv6MaxCidrValue int         `yaml:"ipv6_max_cidr_value"`
-	Blocklists       []Blocklist `yaml:"blocklists"`
+	IPv4MaxCidrValue int        `yaml:"ipv4_max_cidr_value"`
+	IPv6MaxCidrValue int        `yaml:"ipv6_max_cidr_value"`
+	Databases        []Database `yaml:"databases"`
 }
 
 type Cfg struct {

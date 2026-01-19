@@ -26,7 +26,7 @@ dnsdb.yml
 config:
   ipv4_max_cidr_value: 24
   ipv6_max_cidr_value: 64
-  blocklists:
+  databases:
     - url: "https://dnsbl.com/data/local.txt"
       file: "/etc/dnsdist/db/local.lmdb"
       type: "ip"

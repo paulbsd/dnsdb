@@ -78,17 +78,17 @@ func GetRemoteFile(url string) (body io.ReadCloser, lastmodified time.Time, err 
 	return
 }
 
-func HandleStringOrDomain(cfg *config.Cfg, blocklist *config.Blocklist) (err error) {
+func HandleStringOrDomain(cfg *config.Cfg, database *config.Database) (err error) {
 	var handled int
-	var tmpfile = fmt.Sprintf("%s.tmp", blocklist.File)
+	var tmpfile = fmt.Sprintf("%s.tmp", database.File)
 
-	body, lastmodified, err := GetBody(blocklist.URL)
+	body, lastmodified, err := GetBody(database.URL)
 	if err != nil {
 		log.Println(err)
 		return
 	}
 
-	if CompareMtimes(blocklist.File, lastmodified) {
+	if CompareMtimes(database.File, lastmodified) {
 		fileScanner := bufio.NewScanner(body)
 		fileScanner.Split(bufio.ScanLines)
 
@@ -105,33 +105,33 @@ func HandleStringOrDomain(cfg *config.Cfg, blocklist *config.Blocklist) (err err
 				var line = fileScanner.Text()
 				var s = strings.TrimSpace(strings.Split(line, "#")[0])
 				if len(s) > 0 {
-					writer.Put([]byte(s), []byte(blocklist.DefaultValue))
+					writer.Put([]byte(s), []byte(database.DefaultValue))
 					handled++
 				}
 			}
 
-			log.Printf("%d domains/strings handled for url %s\n", handled, blocklist.URL)
+			log.Printf("%d domains/strings handled for url %s\n", handled, database.URL)
 		}
 
-		err = os.Rename(tmpfile, blocklist.File)
+		err = os.Rename(tmpfile, database.File)
 		if err != nil {
-			log.Fatalf("can't move file %s to %s\n", tmpfile, blocklist.File)
+			log.Fatalf("can't move file %s to %s\n", tmpfile, database.File)
 		}
 	} else {
-		log.Printf("not modifying file %s\n", blocklist.File)
+		log.Printf("not modifying file %s\n", database.File)
 	}
 
 	return
 }
 
-func HandleIP(cfg *config.Cfg, dbname string, blocklist *config.Blocklist) (err error) {
-	body, lastmodified, err := GetBody(blocklist.URL)
+func HandleIP(cfg *config.Cfg, dbname string, database *config.Database) (err error) {
+	body, lastmodified, err := GetBody(database.URL)
 	if err != nil {
 		log.Fatalln(err)
 		return
 	}
 
-	if CompareMtimes(blocklist.File, lastmodified) {
+	if CompareMtimes(database.File, lastmodified) {
 		fileScanner := bufio.NewScanner(body)
 		fileScanner.Split(bufio.ScanLines)
 
@@ -150,9 +150,9 @@ func HandleIP(cfg *config.Cfg, dbname string, blocklist *config.Blocklist) (err 
 			log.Println(err)
 		}
 
-		err = env.Open(blocklist.File, lmdb.NoReadahead|lmdb.NoSubdir, 0664)
+		err = env.Open(database.File, lmdb.NoReadahead|lmdb.NoSubdir, 0664)
 		if err != nil {
-			log.Fatalf("can't open file %s\n", blocklist.File)
+			log.Fatalf("can't open file %s\n", database.File)
 		}
 		defer env.Close()
 
@@ -215,12 +215,12 @@ func HandleIP(cfg *config.Cfg, dbname string, blocklist *config.Blocklist) (err 
 				handled++
 			}
 
-			log.Printf("%d ips handled for url %s\n", handled, blocklist.URL)
+			log.Printf("%d ips handled for url %s\n", handled, database.URL)
 
 			return
 		})
 	} else {
-		log.Printf("not modifying file %s\n", blocklist.File)
+		log.Printf("not modifying file %s\n", database.File)
 	}
 
 	return
