@@ -6,19 +6,20 @@ import (
 	"time"
 )
 
-func CompareMtimes(file string, lastmodified time.Time) bool {
+func CompareMtimes(file string, lastmodified time.Time) (isbefore bool, err error) {
 	var currentmtime time.Time
 	currentfile, err := os.Open(file)
 	if err != nil {
-		log.Println(err)
+		return
 	} else {
+		defer currentfile.Close()
 		s, err := currentfile.Stat()
 		if err != nil {
 			log.Println(err)
 		}
 		currentmtime = s.ModTime()
 	}
-	defer currentfile.Close()
+	isbefore = currentmtime.Before(lastmodified)
 
-	return currentmtime.Before(lastmodified)
+	return
 }

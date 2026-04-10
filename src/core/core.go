@@ -24,10 +24,16 @@ func GetBody(url string) (body io.ReadCloser, lastmodified time.Time, err error)
 	if strings.HasPrefix(url, "file:///") {
 		path := strings.Replace(url, "file://", "", 1)
 		body, lastmodified, err = GetLocalFile(path)
+		if err != nil {
+			return
+		}
 
 		return body, lastmodified, err
 	} else if strings.HasPrefix(url, "http://") || strings.HasPrefix(url, "https://") {
 		body, lastmodified, err = GetRemoteFile(url)
+		if err != nil {
+			return
+		}
 
 		return body, lastmodified, nil
 	}
@@ -38,12 +44,12 @@ func GetBody(url string) (body io.ReadCloser, lastmodified time.Time, err error)
 func GetLocalFile(path string) (body io.ReadCloser, lastmodified time.Time, err error) {
 	file, err := os.Open(path)
 	if err != nil {
-		log.Println(err)
+		return
 	}
 
 	fstat, err := file.Stat()
 	if err != nil {
-		log.Println(err)
+		return
 	}
 
 	lastmodified = fstat.ModTime()
@@ -53,14 +59,16 @@ func GetLocalFile(path string) (body io.ReadCloser, lastmodified time.Time, err 
 }
 
 func GetRemoteFile(url string) (body io.ReadCloser, lastmodified time.Time, err error) {
-	res, err := http.Get(url)
+	client := &http.Client{}
+	res, err := client.Get(url)
 	if err != nil {
 		log.Println(err)
 	}
 
 	lmstr := res.Header.Get("Last-Modified")
-	if err != nil {
-		log.Println(err)
+	if lmstr == "" {
+		err = fmt.Errorf("no 'Last-Modified' header found!")
+		return
 	}
 
 	lastmodified, err = time.Parse(lastmodifiedFormat, lmstr)
@@ -72,7 +80,6 @@ func GetRemoteFile(url string) (body io.ReadCloser, lastmodified time.Time, err 
 		err = fmt.Errorf("error with %s url with http code %d", url, res.StatusCode)
 		return nil, lastmodified, err
 	}
-
 	body = res.Body
 
 	return
@@ -88,7 +95,12 @@ func HandleStringOrDomain(cfg *config.Cfg, database *config.Database) (err error
 		return
 	}
 
-	if CompareMtimes(database.File, lastmodified) {
+	old, err := CompareMtimes(database.File, lastmodified)
+	if err != nil {
+		return
+	}
+
+	if old {
 		fileScanner := bufio.NewScanner(body)
 		fileScanner.Split(bufio.ScanLines)
 
@@ -127,11 +139,14 @@ func HandleStringOrDomain(cfg *config.Cfg, database *config.Database) (err error
 func HandleIP(cfg *config.Cfg, dbname string, database *config.Database) (err error) {
 	body, lastmodified, err := GetBody(database.URL)
 	if err != nil {
-		log.Fatalln(err)
+		return
+	}
+	old, err := CompareMtimes(database.File, lastmodified)
+	if err != nil {
 		return
 	}
 
-	if CompareMtimes(database.File, lastmodified) {
+	if old {
 		fileScanner := bufio.NewScanner(body)
 		fileScanner.Split(bufio.ScanLines)
 
